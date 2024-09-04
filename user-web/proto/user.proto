@@ -54,11 +54,9 @@ message PageInfo{
 message UserInfoResponse{
   uint32 id = 1;
   string mobile = 2;
-  string password = 3;
-  string nickname = 4;
-  uint64 birthDay = 5;
-  uint32 gender = 6;
-  uint32 role = 7;
+  string nickname = 3;
+  uint64 birthDay = 4;
+  uint32 gender = 5;
 
 }
 

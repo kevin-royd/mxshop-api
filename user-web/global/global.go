@@ -1,6 +1,7 @@
 package global
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/redis/go-redis/v9"
@@ -53,4 +54,12 @@ func RemoveTopStruct(fields map[string]string) map[string]string {
 		res[field[strings.Index(field, ".")+1:]] = err
 	}
 	return res
+}
+
+func MapToJSONString(fields map[string]string) (string, error) {
+	jsonData, err := json.Marshal(fields)
+	if err != nil {
+		return "", err
+	}
+	return string(jsonData), nil
 }

@@ -6,6 +6,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"mxshop-api/user-web/config"
+	"mxshop-api/user-web/proto"
 	"net/http"
 	"strings"
 )
@@ -13,6 +14,7 @@ import (
 var (
 	ServerConf *config.ServerConfig = &config.ServerConfig{}
 	Translator ut.Translator
+	UserClient proto.UserClient
 )
 
 // HandleGrpcErrToHttp 将grpc状态码转换为http

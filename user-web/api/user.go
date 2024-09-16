@@ -7,9 +7,6 @@ import (
 	"github.com/anaskhan96/go-password-encoder"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"mxshop-api/user-web/forms"
 	"mxshop-api/user-web/global"
 	"strconv"
@@ -18,19 +15,6 @@ import (
 	"net/http"
 )
 
-var conn *grpc.ClientConn
-var userClient proto.UserClient
-
-func InitUserClient() {
-	var err error
-	conn, err = grpc.NewClient(fmt.Sprintf("%s:%d", global.ServerConf.UserServerInfo.Host, global.ServerConf.UserServerInfo.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		zap.S().Error("【InitUserClient】连接用户服务失败：", err)
-		return
-	}
-	userClient = proto.NewUserClient(conn)
-}
-
 func GetUserList(ctx *gin.Context) {
 	// 获取偏移量和分页数
 	pn := ctx.DefaultQuery("pn", "0")
@@ -38,7 +22,7 @@ func GetUserList(ctx *gin.Context) {
 
 	pSize := ctx.DefaultQuery("pSize", "25")
 	pSizeInt, _ := strconv.Atoi(pSize)
-	rsp, err := userClient.GetUserList(context.Background(), &proto.PageInfo{
+	rsp, err := global.UserClient.GetUserList(context.Background(), &proto.PageInfo{
 		Pn:    uint32(pnInt),
 		PSize: uint32(pSizeInt),
 	})
@@ -46,7 +30,7 @@ func GetUserList(ctx *gin.Context) {
 		global.HandleGrpcErrToHttp(err, ctx)
 		return
 	}
-	ctx.JSON(http.StatusOK, rsp.Data)
+	ctx.JSON(http.StatusOK, gin.H{"data": rsp.Data})
 }
 
 // 校验用户登录
@@ -66,7 +50,7 @@ func PassWordLoginForms(c *gin.Context) {
 		return
 	}
 	// 查询手机号是否存在
-	if _, err := userClient.GetUserByMobile(c, &proto.MobileRequest{
+	if _, err := global.UserClient.GetUserByMobile(c, &proto.MobileRequest{
 		Mobile: passWordLoginForm.Mobile,
 	}); err != nil {
 		global.HandleGrpcErrToHttp(err, c)
@@ -77,7 +61,7 @@ func PassWordLoginForms(c *gin.Context) {
 		salt, encodedPwd := password.Encode(passWordLoginForm.Password, options)
 		pwd := fmt.Sprintf("$sha512$%s$%s", salt, encodedPwd)
 		fmt.Printf("pwd %s\n", pwd)
-		verify, _ := userClient.CheckUserPassword(c, &proto.PasswordCheckInfo{
+		verify, _ := global.UserClient.CheckUserPassword(c, &proto.PasswordCheckInfo{
 			Password:          passWordLoginForm.Password,
 			EncryptedPassword: pwd,
 		})

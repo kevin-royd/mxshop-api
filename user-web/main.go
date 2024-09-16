@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"go.uber.org/zap"
-	"mxshop-api/user-web/api"
 	"mxshop-api/user-web/global"
 	"mxshop-api/user-web/initialize"
 )
@@ -16,7 +15,7 @@ func main() {
 	initialize.InitConfig()
 
 	// 3. 初始化svc客户端连接
-	api.InitUserClient()
+	initialize.InitUserClient()
 
 	// 4.初始化翻译器
 	if err := initialize.InitValidator("zh"); err != nil {

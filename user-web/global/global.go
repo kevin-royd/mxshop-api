@@ -3,18 +3,22 @@ package global
 import (
 	"github.com/gin-gonic/gin"
 	ut "github.com/go-playground/universal-translator"
+	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"mxshop-api/user-web/config"
 	"mxshop-api/user-web/proto"
+	"mxshop-api/user-web/storage"
 	"net/http"
 	"strings"
 )
 
 var (
-	ServerConf *config.ServerConfig = &config.ServerConfig{}
-	Translator ut.Translator
-	UserClient proto.UserClient
+	ServerConf  *config.ServerConfig = &config.ServerConfig{}
+	Translator  ut.Translator
+	UserClient  proto.UserClient
+	RedisClient *redis.Client
+	RedisStore  *storage.RedisStore
 )
 
 // HandleGrpcErrToHttp 将grpc状态码转换为http

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
-	"go.uber.org/zap"
 	"mxshop-api/user-web/global"
 )
 
@@ -26,10 +25,6 @@ func InitConfig() {
 	if err := v.Unmarshal(serverConfig); err != nil {
 		panic(err)
 	}
-	fmt.Println(serverConfig)
-	zap.S().Infof("配置信息 %v\n", serverConfig)
-	fmt.Printf("%+v\n", v.Get("name"))
-
 	// viper 动态监听变化
 	v.WatchConfig()
 	v.OnConfigChange(func(e fsnotify.Event) {

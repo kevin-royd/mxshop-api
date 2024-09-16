@@ -17,14 +17,18 @@ func main() {
 	// 3. 初始化svc客户端连接
 	initialize.InitUserClient()
 
-	// 4.初始化翻译器
+	// 4.初始化router
+	routers := initialize.Routers()
+
+	// 5.初始化翻译器
 	if err := initialize.InitValidator("zh"); err != nil {
 		fmt.Printf("初始化翻译器错误, err = %s", err.Error())
 		return
 	}
 
-	// 5.初始化router
-	routers := initialize.Routers()
+	// 6.初始化redis
+	initialize.InitRedis()
+
 	if err := routers.Run(fmt.Sprintf(":%d", global.ServerConf.ServerPort)); err != nil {
 		zap.S().Panicw("service start error", "msg", err.Error())
 	}

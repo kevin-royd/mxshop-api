@@ -23,7 +23,7 @@ message PasswordCheckInfo{
 message UpdateUserInfo{
   uint32 id = 1;
   string nickName = 2;
-  string gender = 3;
+  uint32 gender = 3;
   uint64 birthDay = 4;
 }
 

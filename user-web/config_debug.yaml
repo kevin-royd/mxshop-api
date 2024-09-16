@@ -6,3 +6,15 @@ userSrv:
 
 jwt:
   SigningKey: "sHAY*g=N,0eN}+b1FYo+c]!CwAw^4kVm"
+
+captcha:
+  enableCaptcha: true
+  # type audio,string,math,chinese,
+  type: "math"
+  sourceChinese: "的一了是不在的人有我他这中大为上个国我们要和到也你就得着说们国人她"
+
+redis:
+  host: "localhost"
+  port: 26379
+  db: 1
+  expirationTime: "5m"

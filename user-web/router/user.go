@@ -3,12 +3,14 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	"mxshop-api/user-web/api"
+	"mxshop-api/user-web/middlewares"
 )
 
 func InitUserRouter(Router *gin.RouterGroup) {
-	ApiGroup := Router.Group("user")
+	userGroup := Router.Group("user")
 	{
-		ApiGroup.GET("/list", api.GetUserList)
-		ApiGroup.POST("/login", api.PassWordLoginForms)
+		userGroup.GET("/list", middlewares.JWTAuth(), middlewares.IsAdminAuth(), api.GetUserList)
+		userGroup.POST("/login", api.PassWordLoginForms)
+		//userGroup.POST("/register", api.RegisterUser)
 	}
 }

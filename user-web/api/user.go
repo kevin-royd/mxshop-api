@@ -2,15 +2,13 @@ package api
 
 import (
 	"context"
-	"crypto/sha512"
 	"fmt"
-	"github.com/anaskhan96/go-password-encoder"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v4"
 	"mxshop-api/user-web/forms"
 	"mxshop-api/user-web/global"
-	middlewares "mxshop-api/user-web/middlerwares"
+	middlewares "mxshop-api/user-web/middlewares"
 	"mxshop-api/user-web/models"
 	"strconv"
 	"time"
@@ -69,21 +67,27 @@ func PassWordLoginForms(c *gin.Context) {
 		})
 		return
 	}
+	// 校验验证码
+	if global.ServerConf.CaptchaInfo.EnableCaptcha {
+		if !global.RedisStore.Verify(passWordLoginForm.CaptchaId, passWordLoginForm.Captcha, true) {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"msg": "验证码错误",
+			})
+			return
+		}
+	}
 	// 查询手机号是否存在
 	if rsp, err := global.UserClient.GetUserByMobile(c, &proto.MobileRequest{
 		Mobile: passWordLoginForm.Mobile,
 	}); err != nil {
 		global.HandleGrpcErrToHttp(err, c)
 		return
+
 	} else {
 		// 校验密码
-		options := &password.Options{16, 100, 32, sha512.New}
-		salt, encodedPwd := password.Encode(passWordLoginForm.Password, options)
-		pwd := fmt.Sprintf("$sha512$%s$%s", salt, encodedPwd)
-		fmt.Printf("pwd %s\n", pwd)
 		verify, err := global.UserClient.CheckUserPasswd(c, &proto.PasswordCheckInfo{
 			Password:          passWordLoginForm.Password,
-			EncryptedPassword: pwd,
+			EncryptedPassword: rsp.Password,
 		})
 		if err != nil {
 			global.HandleGrpcErrToHttp(err, c)

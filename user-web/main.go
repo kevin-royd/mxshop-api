@@ -18,7 +18,13 @@ func main() {
 	// 3. 初始化svc客户端连接
 	api.InitUserClient()
 
-	// 2.初始化router
+	// 4.初始化翻译器
+	if err := initialize.InitValidator("zh"); err != nil {
+		fmt.Printf("初始化翻译器错误, err = %s", err.Error())
+		return
+	}
+
+	// 5.初始化router
 	routers := initialize.Routers()
 	if err := routers.Run(fmt.Sprintf(":%d", global.ServerConf.ServerPort)); err != nil {
 		zap.S().Panicw("service start error", "msg", err.Error())

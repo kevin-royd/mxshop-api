@@ -2,14 +2,17 @@ package global
 
 import (
 	"github.com/gin-gonic/gin"
+	ut "github.com/go-playground/universal-translator"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"mxshop-api/user-web/config"
 	"net/http"
+	"strings"
 )
 
 var (
 	ServerConf *config.ServerConfig = &config.ServerConfig{}
+	Translator ut.Translator
 )
 
 // HandleGrpcErrToHttp 将grpc状态码转换为http
@@ -27,13 +30,21 @@ func HandleGrpcErrToHttp(err error, ctx *gin.Context) {
 				})
 			case codes.Internal:
 				ctx.JSON(http.StatusInternalServerError, gin.H{
-					"msg": "内部错位",
+					"msg": "内部错误",
 				})
 			default:
 				ctx.JSON(http.StatusInternalServerError, gin.H{
-					"msg": "其他错位",
+					"msg": "其他错误",
 				})
 			}
 		}
 	}
+}
+
+func RemoveTopStruct(fields map[string]string) map[string]string {
+	res := map[string]string{}
+	for field, err := range fields {
+		res[field[strings.Index(field, ".")+1:]] = err
+	}
+	return res
 }

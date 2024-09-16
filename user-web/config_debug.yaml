@@ -1,5 +1,8 @@
 name: "user-web"
-server-port: 8081
-user-srv:
-  target-host: "127.0.0.1"
-  target-port: 8088
+serverPort: 8081
+userSrv:
+  targetHost: "127.0.0.1"
+  targetPort: 8088
+
+jwt:
+  SigningKey: "sHAY*g=N,0eN}+b1FYo+c]!CwAw^4kVm"

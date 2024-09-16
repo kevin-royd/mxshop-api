@@ -7,9 +7,13 @@ import (
 	"github.com/anaskhan96/go-password-encoder"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt/v4"
 	"mxshop-api/user-web/forms"
 	"mxshop-api/user-web/global"
+	middlewares "mxshop-api/user-web/middlerwares"
+	"mxshop-api/user-web/models"
 	"strconv"
+	"time"
 
 	"mxshop-api/user-web/proto"
 	"net/http"
@@ -30,7 +34,23 @@ func GetUserList(ctx *gin.Context) {
 		global.HandleGrpcErrToHttp(err, ctx)
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"data": rsp.Data})
+	data := mapUserData(rsp)
+	ctx.JSON(http.StatusOK, gin.H{"data": data})
+}
+
+// 封装返回对象
+func mapUserData(rsp *proto.UserListResponse) []interface{} {
+	u := make([]interface{}, 0)
+	for _, value := range rsp.Data {
+		user := make(map[string]interface{}, 0)
+		user["id"] = value.Id
+		user["mobile"] = value.Mobile
+		user["nickname"] = value.Nickname
+		user["gender"] = value.Gender
+		user["role"] = value.Role
+		u = append(u, user)
+	}
+	return u
 }
 
 // 校验用户登录
@@ -50,7 +70,7 @@ func PassWordLoginForms(c *gin.Context) {
 		return
 	}
 	// 查询手机号是否存在
-	if _, err := global.UserClient.GetUserByMobile(c, &proto.MobileRequest{
+	if rsp, err := global.UserClient.GetUserByMobile(c, &proto.MobileRequest{
 		Mobile: passWordLoginForm.Mobile,
 	}); err != nil {
 		global.HandleGrpcErrToHttp(err, c)
@@ -61,12 +81,49 @@ func PassWordLoginForms(c *gin.Context) {
 		salt, encodedPwd := password.Encode(passWordLoginForm.Password, options)
 		pwd := fmt.Sprintf("$sha512$%s$%s", salt, encodedPwd)
 		fmt.Printf("pwd %s\n", pwd)
-		verify, _ := global.UserClient.CheckUserPassword(c, &proto.PasswordCheckInfo{
+		verify, err := global.UserClient.CheckUserPasswd(c, &proto.PasswordCheckInfo{
 			Password:          passWordLoginForm.Password,
 			EncryptedPassword: pwd,
 		})
-
-		fmt.Printf("%+v\n", verify)
+		if err != nil {
+			global.HandleGrpcErrToHttp(err, c)
+			return
+		}
+		if !verify.Success {
+			c.JSON(http.StatusUnauthorized, gin.H{"msg": "密码错误"})
+			return
+		}
+		data, err := CreateUserToken(c, rsp)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"msg": err.Error()})
+		}
+		c.JSON(http.StatusOK, gin.H{"msg": "登陆成功", "data": data})
 	}
 
+}
+
+// 创建用户token
+func CreateUserToken(c *gin.Context, rsp *proto.UserInfoResponse) (map[string]interface{}, error) {
+	// 实例化jwt对象
+	j := middlewares.NewJWT()
+	// 实例化claims
+	claims := models.CustomClaims{
+		ID:          uint(rsp.Id),
+		NickName:    rsp.Nickname,
+		AuthorityId: uint(rsp.Role),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
+			Issuer:    "test",
+		},
+	}
+	// 创建token
+	token, err := j.CreateToken(claims)
+	if err != nil {
+		return nil, fmt.Errorf("创建token失败")
+	}
+	data := map[string]interface{}{
+		"Token":     token,
+		"ExpiresAt": time.Now().Unix() + 60*60,
+	}
+	return data, nil
 }

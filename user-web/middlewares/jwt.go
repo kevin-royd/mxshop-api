@@ -2,7 +2,7 @@ package middlewares
 
 import (
 	"errors"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"mxshop-api/user-web/global"
 	"mxshop-api/user-web/models"
 	"net/http"
@@ -52,10 +52,10 @@ type JWT struct {
 }
 
 var (
-	TokenExpired     = errors.New("Token is expired")
-	TokenNotValidYet = errors.New("Token not active yet")
-	TokenMalformed   = errors.New("That's not even a token")
-	TokenInvalid     = errors.New("Couldn't handle this token:")
+	TokenExpired     = errors.New("token is expired")
+	TokenNotValidYet = errors.New("token not active yet")
+	TokenMalformed   = errors.New("that's not even a token")
+	TokenInvalid     = errors.New("couldn't handle this token")
 )
 
 func NewJWT() *JWT {
@@ -76,21 +76,9 @@ func (j *JWT) ParseToken(tokenString string) (*models.CustomClaims, error) {
 		return j.SigningKey, nil
 	})
 	if err != nil {
-		var ve *jwt.ValidationError
-		if errors.As(err, &ve) {
-			switch {
-			case ve.Errors&jwt.ValidationErrorMalformed != 0:
-				return nil, TokenMalformed
-			case ve.Errors&jwt.ValidationErrorExpired != 0:
-				return nil, TokenExpired
-			case ve.Errors&jwt.ValidationErrorNotValidYet != 0:
-				return nil, TokenNotValidYet
-			default:
-				return nil, TokenInvalid
-			}
-		}
-		return nil, TokenInvalid
+		return nil, parseTokenError(err)
 	}
+	// 断言token类型，并且判断值是否有效
 	if claims, ok := token.Claims.(*models.CustomClaims); ok && token.Valid {
 		return claims, nil
 	}
@@ -99,11 +87,6 @@ func (j *JWT) ParseToken(tokenString string) (*models.CustomClaims, error) {
 
 // 刷新 token
 func (j *JWT) RefreshToken(tokenString string) (string, error) {
-	// 临时设置时间为 Unix 时间戳为 0
-	jwt.TimeFunc = func() time.Time {
-		return time.Unix(0, 0)
-	}
-
 	token, err := jwt.ParseWithClaims(tokenString, &models.CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return j.SigningKey, nil
 	})
@@ -112,10 +95,31 @@ func (j *JWT) RefreshToken(tokenString string) (string, error) {
 	}
 
 	if claims, ok := token.Claims.(*models.CustomClaims); ok && token.Valid {
-		jwt.TimeFunc = time.Now
 		claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(1 * time.Hour)) // 更新过期时间
 		return j.CreateToken(*claims)
 	}
 
 	return "", TokenInvalid
+}
+
+// parseTokenError 解析 Token 错误
+func parseTokenError(err error) error {
+	if err != nil {
+		// 如果错误是 jwt.ErrSignatureInvalid，表示签名验证失败
+		if errors.Is(err, jwt.ErrSignatureInvalid) {
+			return TokenInvalid
+		}
+
+		// 如果错误是 jwt.ErrTokenExpired，表示 Token 已过期
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return TokenExpired
+		}
+
+		// 如果错误是 jwt.ErrTokenNotValidYet，表示 Token 尚未生效
+		if errors.Is(err, jwt.ErrTokenNotValidYet) {
+			return TokenNotValidYet
+		}
+	}
+
+	return TokenInvalid
 }

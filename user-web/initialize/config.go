@@ -5,6 +5,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 	"mxshop-api/user-web/global"
+	"time"
 )
 
 func InitConfig() {
@@ -41,4 +42,11 @@ func InitConfig() {
 func GetEnvInfo(env string) bool {
 	viper.AutomaticEnv()
 	return viper.GetBool(env)
+}
+
+// 设置时区
+func InitTimeZone() {
+	cst, _ := time.LoadLocation(global.ServerConf.TimeZone)
+	global.TimeZone = cst
+
 }

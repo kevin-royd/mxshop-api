@@ -12,14 +12,16 @@ import (
 	"mxshop-api/user-web/storage"
 	"net/http"
 	"strings"
+	"time"
 )
 
 var (
-	ServerConf  *config.ServerConfig = &config.ServerConfig{}
+	ServerConf  *config.Cfg = &config.Cfg{}
 	Translator  ut.Translator
 	UserClient  proto.UserClient
 	RedisClient *redis.Client
 	RedisStore  *storage.RedisStore
+	TimeZone    *time.Location
 )
 
 // HandleGrpcErrToHttp 将grpc状态码转换为http

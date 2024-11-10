@@ -31,7 +31,7 @@ func IsAdminAuth() gin.HandlerFunc {
 		}
 
 		// 检查用户权限
-		if currentUser.AuthorityId == 1 {
+		if currentUser.AuthorityId != 1 {
 			ctx.JSON(http.StatusUnauthorized, gin.H{
 				"msg": "权限不足",
 			})

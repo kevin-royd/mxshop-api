@@ -3,6 +3,7 @@ package middlewares
 import (
 	"errors"
 	"github.com/golang-jwt/jwt/v5"
+	"go.uber.org/zap"
 	"mxshop-api/user-web/global"
 	"mxshop-api/user-web/models"
 	"net/http"
@@ -28,6 +29,7 @@ func JWTAuth() gin.HandlerFunc {
 		claims, err := j.ParseToken(token)
 		if err != nil {
 			if errors.Is(err, TokenExpired) {
+				zap.S().Infof("expired:%s", TokenExpired)
 				c.JSON(http.StatusUnauthorized, map[string]string{
 					"msg": "授权已过期",
 				})
@@ -66,20 +68,26 @@ func NewJWT() *JWT {
 
 // 创建一个 token
 func (j *JWT) CreateToken(claims models.CustomClaims) (string, error) {
+	claims.ExpiresAt = jwt.NewNumericDate(time.Now().In(global.TimeZone).Add(1 * time.Hour))
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(j.SigningKey)
 }
 
 // 解析 token
 func (j *JWT) ParseToken(tokenString string) (*models.CustomClaims, error) {
+
 	token, err := jwt.ParseWithClaims(tokenString, &models.CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return j.SigningKey, nil
 	})
 	if err != nil {
 		return nil, parseTokenError(err)
 	}
-	// 断言token类型，并且判断值是否有效
+
 	if claims, ok := token.Claims.(*models.CustomClaims); ok && token.Valid {
+		// 校验过期时间是否已过
+		if claims.ExpiresAt.Before(time.Now().In(global.TimeZone)) {
+			return nil, TokenExpired
+		}
 		return claims, nil
 	}
 	return nil, TokenInvalid
@@ -95,7 +103,7 @@ func (j *JWT) RefreshToken(tokenString string) (string, error) {
 	}
 
 	if claims, ok := token.Claims.(*models.CustomClaims); ok && token.Valid {
-		claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(1 * time.Hour)) // 更新过期时间
+		claims.ExpiresAt = jwt.NewNumericDate(time.Now().In(global.TimeZone).Add(1 * time.Hour)) // 更新过期时间
 		return j.CreateToken(*claims)
 	}
 

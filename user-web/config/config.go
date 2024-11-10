@@ -1,17 +1,20 @@
 package config
 
 type UserServerConfig struct {
-	Host string `mapstructure:"targetHost"`
-	Port int    `mapstructure:"targetPort"`
+	Host        string
+	Port        int
+	ServiceName string
 }
 
-type ServerConfig struct {
-	ServerConfig   string           `mapstructure:"name"`
-	ServerPort     int              `mapstructure:"serverPort"`
-	UserServerInfo UserServerConfig `mapstructure:"userSrv"`
-	JWTInfo        JwtConfig        `mapstructure:"jwt"`
-	CaptchaInfo    CaptchaConfig    `mapstructure:"captcha"`
-	RedisInfo      RedisConfig      `mapstructure:"redis"`
+type Cfg struct {
+	ServerConfig   string `mapstructure:"serverNme"`
+	ServerPort     int    `mapstructure:"serverPort"`
+	TimeZone       string `mapstructure:"timeZone"`
+	UserServerInfo UserServerConfig
+	JWTInfo        JwtConfig     `mapstructure:"jwt"`
+	CaptchaInfo    CaptchaConfig `mapstructure:"captcha"`
+	RedisInfo      RedisConfig   `mapstructure:"redis"`
+	ConsulInfo     ConsulConfig  `mapstructure:"consul"`
 }
 
 type JwtConfig struct {
@@ -29,4 +32,9 @@ type RedisConfig struct {
 	Port           int    `mapstructure:"port"`
 	DB             int    `mapstructure:"db"`
 	ExpirationTime string `mapstructure:"expirationTime"`
+}
+
+type ConsulConfig struct {
+	Host string `mapstructure:"host"`
+	Port int    `mapstructure:"port"`
 }

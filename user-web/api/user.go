@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"mxshop-api/user-web/forms"
 	"mxshop-api/user-web/global"
 	middlewares "mxshop-api/user-web/middlewares"

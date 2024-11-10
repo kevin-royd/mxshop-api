@@ -14,6 +14,10 @@ func main() {
 	// 2.获取配置文件
 	initialize.InitConfig()
 
+	// 3.加载时区，在jwt验证token使用
+	initialize.InitTimeZone()
+	// 3. 初始consul 获取svc客户端连接地址
+	initialize.InitConsul()
 	// 3. 初始化svc客户端连接
 	initialize.InitUserClient()
 
@@ -22,8 +26,7 @@ func main() {
 
 	// 5.初始化翻译器
 	if err := initialize.InitValidator("zh"); err != nil {
-		fmt.Printf("初始化翻译器错误, err = %s", err.Error())
-		return
+		zap.L().Panic("init validator failed", zap.Error(err))
 	}
 
 	// 6.初始化redis

@@ -1,8 +1,9 @@
-name: "user-web"
+serverNme: "user-web"
 serverPort: 8081
-userSrv:
-  targetHost: "127.0.0.1"
-  targetPort: 8088
+#userSrv:
+#  targetHost: "127.0.0.1"
+#  targetPort: 8080
+#  serviceName: "user-srv"
 
 jwt:
   SigningKey: "sHAY*g=N,0eN}+b1FYo+c]!CwAw^4kVm"
@@ -18,3 +19,9 @@ redis:
   port: 26379
   db: 1
   expirationTime: "5m"
+
+consul:
+  host: "192.168.1.4"
+  port: 8500
+
+timezone: "Asia/Shanghai"

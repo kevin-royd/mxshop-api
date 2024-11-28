@@ -7,8 +7,6 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"time"
-
 	"mxshop-api/user-web/global"
 	"mxshop-api/user-web/proto"
 )
@@ -32,15 +30,15 @@ func InitUserClient() {
 
 	// NewClient使用的是grpc的懒加载机制不会主动发起连接。所以主动发起连接进行检查
 	// 测试lb是否生效
-	for i := 0; i < 10; i++ {
-		_, err = UserClient.GetUserById(context.Background(), &proto.IdRequest{Id: 1})
-		if err != nil {
-			zap.S().Errorw("Request Failed", "error", err)
-		} else {
-			zap.S().Infow("Response Received")
-		}
-		time.Sleep(1 * time.Second)
-	}
+	//for i := 0; i < 10; i++ {
+	//	_, err = UserClient.GetUserById(context.Background(), &proto.IdRequest{Id: 1})
+	//	if err != nil {
+	//		zap.S().Errorw("Request Failed", "error", err)
+	//	} else {
+	//		zap.S().Infow("Response Received")
+	//	}
+	//	time.Sleep(1 * time.Second)
+	//}
 
 	_, err = UserClient.GetUserById(context.Background(), &proto.IdRequest{
 		Id: 1,

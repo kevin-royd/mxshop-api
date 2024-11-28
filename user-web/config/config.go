@@ -35,6 +35,8 @@ type RedisConfig struct {
 }
 
 type ConsulConfig struct {
-	Host string `mapstructure:"host"`
-	Port int    `mapstructure:"port"`
+	Host             string `mapstructure:"host" json:"host"`
+	Port             int    `mapstructure:"port" json:"port"`
+	Target           string `mapstructure:"target" json:"target"`
+	TargetServerName string `mapstructure:"targetServerName" json:"targetServerName"`
 }

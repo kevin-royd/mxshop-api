@@ -17,7 +17,7 @@ func InitConsul() {
 		zap.S().Panicw("init consul fail", "err", err)
 	}
 	// 通过agent filter获取service
-	data, err := client.Agent().ServicesWithFilter(`Service == "user-srv"`)
+	data, err := client.Agent().ServicesWithFilter(fmt.Sprintf(`Service == "%s"`, global.ServerConf.ConsulInfo.TargetServerName))
 	if err != nil {
 		zap.S().Panicw("Filter consul Service fail", "err", err)
 	}
